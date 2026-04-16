@@ -6,55 +6,58 @@ local function AddMoney(acc, price)
 end
 
 CreateThread(function()
-	while GetResourceState('ox_inventory') ~= 'started' do Wait(1000) end
+    if Config.Inventory == 'ox' then
+        while GetResourceState('ox_inventory') ~= 'started' do Wait(1000) end
 
-	for k, v in pairs(Config.Shops) do
-		local stash = {
-			id = k,
-			label = v.label..' '..Strings.inventory,
-			slots = 50,
-			weight = 100000,
-		}
-		exports.ox_inventory:RegisterStash(stash.id, stash.label, stash.slots, stash.weight)
-		local items = exports.ox_inventory:GetInventoryItems(k, false)
-		local stashItems = {}
-		if items and items ~= {} then
-			for _, v2 in pairs(items) do
-				if v2 and v2.name then
-					stashItems[#stashItems + 1] = { name = v2.name, metadata = v2.metadata, count = v2.count, price = (v2.metadata.shopData.price or 0) }
-				end
-			end
+        for k, v in pairs(Config.Shops) do
+            local stash = {
+                id = k,
+                label = v.label..' '..Strings.inventory,
+                slots = 50,
+                weight = 100000,
+            }
+            exports.ox_inventory:RegisterStash(stash.id, stash.label, stash.slots, stash.weight)
+            local items = exports.ox_inventory:GetInventoryItems(k, false)
+            local stashItems = {}
+            if items and items ~= {} then
+                for _, v2 in pairs(items) do
+                    if v2 and v2.name then
+                        stashItems[#stashItems + 1] = { name = v2.name, metadata = v2.metadata, count = v2.count, price = (v2.metadata.shopData.price or 0) }
+                    end
+                end
 
-			exports.ox_inventory:RegisterShop(k, {
-				name = v.label,
-				inventory = stashItems,
-				locations = {
-					v.locations.shop.coords,
-				}
-			})
-		end
-	end
+                exports.ox_inventory:RegisterShop(k, {
+                    name = v.label,
+                    inventory = stashItems,
+                    locations = {
+                        v.locations.shop.coords,
+                    }
+                })
+            end
+        end
 
-	swapHook = exports.ox_inventory:registerHook('swapItems', function(payload)
-		for k in pairs(Config.Shops) do
-			if payload.fromInventory == k then
-				TriggerEvent('qb-restaurant :refreshShop', k)
-			elseif payload.toInventory == k and tonumber(payload.fromInventory) then
-				TriggerClientEvent('qb-restaurant :setProductPrice', payload.fromInventory, k, payload.toSlot)
-			end
-		end
-	end, {})
+        swapHook = exports.ox_inventory:registerHook('swapItems', function(payload)
+            for k in pairs(Config.Shops) do
+                if payload.fromInventory == k then
+                    TriggerEvent('qb-restaurant :refreshShop', k)
+                elseif payload.toInventory == k and tonumber(payload.fromInventory) then
+                    TriggerClientEvent('qb-restaurant :setProductPrice', payload.fromInventory, k, payload.toSlot)
+                end
+            end
+        end, {})
 
-	buyHook = exports.ox_inventory:registerHook('buyItem', function(payload)
-		local metadata = payload.metadata
-		if metadata?.shopData then
-			exports.ox_inventory:RemoveItem(metadata.shopData.shop, payload.itemName, payload.count)
-			AddMoney(metadata.shopData.shop, metadata.shopData.price)
-		end
-	end, {})
+        buyHook = exports.ox_inventory:registerHook('buyItem', function(payload)
+            local metadata = payload.metadata
+            if metadata?.shopData then
+                exports.ox_inventory:RemoveItem(metadata.shopData.shop, payload.itemName, payload.count)
+                AddMoney(metadata.shopData.shop, metadata.shopData.price)
+            end
+        end, {})
+    end
 end)
 
 RegisterNetEvent('qb-restaurant :refreshShop', function(shop)
+    if Config.Inventory ~= 'ox' then return end
 	Wait(250)
 	local items = exports.ox_inventory:GetInventoryItems(shop, false)
 	local stashItems = {}
@@ -77,6 +80,7 @@ RegisterNetEvent('qb-restaurant :refreshShop', function(shop)
 end)
 
 RegisterNetEvent('qb-restaurant :setData', function(shop, slot, price)
+    if Config.Inventory ~= 'ox' then return end
 	local item = exports.ox_inventory:GetSlot(shop, slot)
 	if not item then return end
 
