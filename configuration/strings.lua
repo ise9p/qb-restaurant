@@ -5,5 +5,7 @@ Strings = {
     inventory = 'Inventory',
     success = 'Success',
     item_stocked_desc = 'You stocked an item for $%s!',
-    
+    target_inventory = 'Access Inventory',
+    target_shop = 'Access Shop',
+    target_boss = 'Access Boss Menu',
 }
