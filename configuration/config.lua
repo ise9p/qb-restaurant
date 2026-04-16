@@ -1,6 +1,8 @@
 Config = {}
 
 Config.DrawMarkers = true -- draw markers when nearby?
+Config.Inventory = 'ox' -- 'ox' for ox_inventory, 'qb' for qb-inventory
+Config.Target = 'ox' -- 'ox' for ox_target, 'qb' for qb-target, false for none
 
 Config.Shops = {
     ['uwucafe'] = { -- Job name
